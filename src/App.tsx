@@ -1,3 +1,4 @@
+import { ToastContainer } from "react-toastify";
 import "./App.css";
 import Counter from "./components/counter";
 import Todo from "./components/todo";
@@ -11,6 +12,7 @@ const App = () => {
     <>
       <Counter />
       <Todo />
+      <ToastContainer />
     </>
   );
 };

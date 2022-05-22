@@ -1,5 +1,6 @@
 import { useReducer, useEffect } from "react";
-
+import "react-toastify/dist/ReactToastify.css";
+import { toast } from "react-toastify";
 const initialState = {
   todos: [],
   loading: false,
@@ -10,9 +11,12 @@ const todoReducer = (
     todos: { completed: boolean; title: string; id: number; userId: number }[];
     loading?: boolean;
   },
-  action: { type: string; id?: number; payload?: any }
+  action: { type: string; id?: number; payload?: any; title?: string }
 ) => {
-  const { type, id, payload } = action;
+  const { type, id, payload, title } = action;
+  let chosenTodo = state.todos.find((t) => t.id === id);
+  let isCompleted = chosenTodo?.completed ? "undone" : "done";
+
   switch (type) {
     case "fetchData": {
       return { loading: !state.loading, todos: payload };
@@ -23,6 +27,10 @@ const todoReducer = (
       };
     }
     case "completeTodo": {
+      toast(`${title} marked as ${isCompleted}`, {
+        toastId: id,
+        progressStyle: { backgroundColor: "red" },
+      });
       return {
         todos: state.todos.map((t) => {
           return t.id === id ? { ...t, completed: !t.completed } : t;
@@ -39,11 +47,9 @@ const Todo = () => {
   const [state, dispatch] = useReducer(todoReducer, initialState);
 
   useEffect(() => {
-    const res = () =>
-      fetch("https://jsonplaceholder.typicode.com/todos")
-        .then((res) => res.json())
-        .then((data) => dispatch({ type: "fetchData", payload: data }));
-    res();
+    fetch("https://jsonplaceholder.typicode.com/todos")
+      .then((res) => res.json())
+      .then((data) => dispatch({ type: "fetchData", payload: data }));
   }, []);
 
   if (state.loading) {
@@ -51,20 +57,32 @@ const Todo = () => {
   }
 
   return (
-    <>
-      {state.todos.map(
-        (t: { title: string; id: number; completed: boolean }, i: number) => (
-          <div
-            style={{ backgroundColor: t.completed ? "green" : "initial" }}
-            key={i}
-            onClick={() => dispatch({ type: "completeTodo", id: t.id })}
-          >
-            <p>{t.title}</p>
-            <p>{t.completed ? "true" : "false"}</p>
-          </div>
-        )
-      )}
-    </>
+    <table>
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Completed</th>
+        </tr>
+      </thead>
+      <tbody>
+        {state.todos.map(
+          (t: { title: string; completed: boolean; id: number }) => (
+            <tr
+              onClick={() =>
+                dispatch({ type: "completeTodo", id: t.id, title: t.title })
+              }
+              style={{
+                backgroundColor: t.completed ? "green" : "initial",
+                color: t.completed ? "white" : "black",
+              }}
+            >
+              <td>{t.title}</td>
+              <td>{t.completed.toString()}</td>
+            </tr>
+          )
+        )}
+      </tbody>
+    </table>
   );
 };
 
