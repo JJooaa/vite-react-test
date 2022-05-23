@@ -1,12 +1,5 @@
 import { useReducer } from "react";
 
-/* 
-useState and useReducer do the same thing.
-useState can be good for simple components
-useReducer for bigger more complex components. ALL PREFERENCE THO 
-You can write reducer logic in a seperate file 
-*/
-
 const reducer = (state: { count: number }, action: { type: string }) => {
   switch (action.type) {
     case "increment": {

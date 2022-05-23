@@ -1,6 +1,8 @@
 import { useReducer, useEffect } from "react";
-import "react-toastify/dist/ReactToastify.css";
-import { toast } from "react-toastify";
+import "../App.css";
+import Spinner from "./spinner";
+import { notify } from "./toasts";
+
 const initialState = {
   todos: [],
   loading: false,
@@ -13,24 +15,21 @@ const todoReducer = (
   },
   action: { type: string; id?: number; payload?: any; title?: string }
 ) => {
-  const { type, id, payload, title } = action;
+  const { type, id, payload } = action;
   let chosenTodo = state.todos.find((t) => t.id === id);
   let isCompleted = chosenTodo?.completed ? "undone" : "done";
 
   switch (type) {
-    case "fetchData": {
+    case "fetchTodos": {
       return { loading: !state.loading, todos: payload };
     }
-    case "remove": {
+    case "removeTodo": {
       return {
         todos: state.todos.filter((t: { id: number }) => t.id !== id),
       };
     }
-    case "completeTodo": {
-      toast(`${title} marked as ${isCompleted}`, {
-        toastId: id,
-        progressStyle: { backgroundColor: "red" },
-      });
+    case "toggleCompletion": {
+      chosenTodo && notify(chosenTodo, isCompleted);
       return {
         todos: state.todos.map((t) => {
           return t.id === id ? { ...t, completed: !t.completed } : t;
@@ -38,7 +37,7 @@ const todoReducer = (
       };
     }
     default: {
-      throw Error("Error " + type);
+      throw Error("reducer action.type is not valid ---> " + type);
     }
   }
 };
@@ -49,37 +48,51 @@ const Todo = () => {
   useEffect(() => {
     fetch("https://jsonplaceholder.typicode.com/todos")
       .then((res) => res.json())
-      .then((data) => dispatch({ type: "fetchData", payload: data }));
+      .then((data) => dispatch({ type: "fetchTodos", payload: data }));
   }, []);
 
   if (state.loading) {
-    return <div>loading...</div>;
+    return (
+      <div className="relative h-screen w-full">
+        <Spinner />
+      </div>
+    );
   }
 
+  const firstLetterToUpperCase = (value: string) => {
+    return [value[0].toUpperCase(), ...value.slice(1)];
+  };
+
   return (
-    <table>
+    <table className="mx-auto bg-slate-200 text-left">
       <thead>
         <tr>
-          <th>Title</th>
-          <th>Completed</th>
+          <th className="p-4 border-2 border-black">Id</th>
+          <th className="p-4 border-2 border-black">Title</th>
+          <th className="p-4 border-2 border-black">Completed</th>
         </tr>
       </thead>
       <tbody>
         {state.todos.map(
-          (t: { title: string; completed: boolean; id: number }) => (
-            <tr
-              onClick={() =>
-                dispatch({ type: "completeTodo", id: t.id, title: t.title })
-              }
-              style={{
-                backgroundColor: t.completed ? "green" : "initial",
-                color: t.completed ? "white" : "black",
-              }}
-            >
-              <td>{t.title}</td>
-              <td>{t.completed.toString()}</td>
-            </tr>
-          )
+          (t: { title: string; completed: boolean; id: number }) => {
+            return (
+              <tr
+                onClick={() => dispatch({ type: "toggleCompletion", id: t.id })}
+                style={{
+                  backgroundColor: t.completed ? "seagreen" : "initial",
+                  color: t.completed ? "white" : "black",
+                }}
+              >
+                <td className="p-4 border-2 border-black">{t.id}</td>
+                <td className="p-4 border-2 border-black">
+                  {firstLetterToUpperCase(t.title)}
+                </td>
+                <td className="p-4 border-2 border-black">
+                  <code>{t.completed.toString()}</code>
+                </td>
+              </tr>
+            );
+          }
         )}
       </tbody>
     </table>
