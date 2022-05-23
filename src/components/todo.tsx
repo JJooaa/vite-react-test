@@ -42,6 +42,8 @@ const todoReducer = (
   }
 };
 
+const tableHeaders = ["Id", "Title", "Completed"];
+
 const Todo = () => {
   const [state, dispatch] = useReducer(todoReducer, initialState);
 
@@ -67,9 +69,9 @@ const Todo = () => {
     <table className="mx-auto bg-slate-200 text-left">
       <thead>
         <tr>
-          <th className="p-4 border-2 border-black">Id</th>
-          <th className="p-4 border-2 border-black">Title</th>
-          <th className="p-4 border-2 border-black">Completed</th>
+          {tableHeaders.map((header) => (
+            <th className="p-4 border-2 border-black">{header}</th>
+          ))}
         </tr>
       </thead>
       <tbody>
